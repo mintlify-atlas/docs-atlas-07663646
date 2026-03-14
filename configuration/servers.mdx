@@ -1,0 +1,87 @@
+---
+title: Servers array
+description: How to configure the Servers list in status.py — server entries, display names, URL format, and visual spacers.
+---
+
+The `Servers` variable is a Python list of dictionaries. Each dictionary is either a **server entry** or a **spacer**. The bot iterates through this list to build the Discord embed fields in order.
+
+## Entry types
+
+### Server entry
+
+A standard entry requires three keys:
+
+```python status.py
+{"URL": "http://localhost:30120", "DisplayName": "Los Santos #1", "Bypass": False}
+```
+
+The bot queries two HTTP endpoints on this URL every `UpdateDelay` seconds:
+
+- `{URL}/players.json` — JSON array of connected players; `len()` gives the current count.
+- `{URL}/info.json` — Server metadata; `info['vars']['sv_maxClients']` is the slot cap.
+
+The direct-connect address shown in the embed is built by extracting the last five characters of `URL` as the port:
+
+```python
+f"Direct connect via: `{PublicIP}:{serverObj['URL'][-5:]}"`
+# e.g. "Direct connect via: `velocitynetworks.org:30120`"
+```
+
+<Note>
+Make sure every server URL ends with a five-digit port number (e.g. `:30120`). The bot always takes the last five characters of the URL string as the port for the direct-connect display.
+</Note>
+
+### Spacer entry
+
+Setting `Bypass: True` on an entry inserts a zero-width blank embed field (`\u200b`). No `URL` or `DisplayName` is needed. Use spacers to create visual line breaks between server groups in the Discord embed.
+
+```python status.py
+{"Bypass": True}
+```
+
+## Full example
+
+```python status.py
+Servers = [
+    {"URL": "http://localhost:30120", "DisplayName": "Los Santos #1", "Bypass": False},
+    {"URL": "http://localhost:30122", "DisplayName": "Los Santos #2", "Bypass": False},
+    {"Bypass": True},   # visual spacer between groups
+    {"URL": "http://localhost:30124", "DisplayName": "Los Santos #3", "Bypass": False},
+    {"URL": "http://localhost:30126", "DisplayName": "Los Santos #4", "Bypass": False},
+    {"Bypass": True},   # visual spacer
+    {"URL": "http://localhost:30128", "DisplayName": "Los Santos #5", "Bypass": False},
+]
+```
+
+## Key reference
+
+<ParamField path="URL" type="string" required>
+  Full HTTP URL of the FiveM server, including port. Must end with a five-digit port number.
+  The last five characters are extracted as the port for the direct-connect string shown in the embed.
+
+  Example: `"http://localhost:30120"` or `"http://192.168.1.10:30120"`
+</ParamField>
+
+<ParamField path="DisplayName" type="string" required>
+  Label used as the embed field title for this server in Discord.
+  Shown whether the server is online or offline.
+
+  Example: `"Los Santos #1"`
+</ParamField>
+
+<ParamField path="Bypass" type="boolean" required default="False">
+  When `False`, the entry is treated as a normal server to monitor.
+
+  When `True`, the entry becomes a spacer: a zero-width blank embed field (`\u200b`) is inserted.
+  No `URL` or `DisplayName` is read for spacer entries.
+</ParamField>
+
+## Tips
+
+<Tip>
+Group related servers (e.g. all roleplay servers, then all event servers) and place a `{"Bypass": True}` spacer between each group. This keeps the embed readable when you have many servers.
+</Tip>
+
+<Note>
+The bot does not validate `URL` at startup. If a URL is unreachable, the server is treated as offline and `ServerDownNotice` is shown for that field.
+</Note>

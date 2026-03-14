@@ -1,0 +1,127 @@
+---
+title: Running the bot
+description: Install dependencies, run status.py, and keep the bot alive in production.
+---
+
+## Prerequisites
+
+Before running the bot, confirm Python 3 is installed:
+
+```bash
+python3 --version
+```
+
+You should see output such as `Python 3.10.12`. If the command is not found, install Python 3 from [https://www.python.org/downloads/](https://www.python.org/downloads/).
+
+## Initial run
+
+<Steps>
+  <Step title="Install dependencies">
+    <Tabs>
+      <Tab title="Linux / macOS">
+        ```bash
+        python3 -m pip install discord requests
+        ```
+      </Tab>
+      <Tab title="Windows">
+        ```bash
+        py -m pip install discord requests
+        ```
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title="Configure status.py">
+    Open `status.py` and fill in the required variables at the top of the file:
+
+    ```python
+    ChannelID  = 123456789012345678   # your Discord channel ID
+    BotToken   = "your-bot-token"     # from the Discord developer portal
+    ```
+
+    See the [Discord setup guide](/guides/discord-setup) if you have not registered your bot yet.
+  </Step>
+
+  <Step title="Start the bot">
+    <Tabs>
+      <Tab title="Linux / macOS">
+        ```bash
+        python3 status.py
+        ```
+      </Tab>
+      <Tab title="Windows">
+        ```bash
+        py status.py
+        ```
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title="Verify it is running">
+    If the bot token and channel ID are correct you will see:
+
+    ```
+    Connected as BotName!
+    ```
+
+    In Discord, the bot will:
+    1. Purge all messages in the configured channel.
+    2. Post a temporary **Loading...** message.
+    3. Replace it with a live status embed that refreshes every `UpdateDelay` seconds.
+  </Step>
+</Steps>
+
+## Stopping the bot
+
+Press **Ctrl+C** in the terminal where the bot is running. The process will exit and Discord will show the bot as offline.
+
+## Running persistently
+
+<Tip>
+  Use `screen` or `tmux` to keep the bot alive after you close your SSH session or terminal window. Both tools let you detach from a session without killing the process running inside it.
+</Tip>
+
+<Tabs>
+  <Tab title="screen">
+    ```bash
+    # Start a named session
+    screen -S fivem-status
+
+    # Run the bot inside the session
+    python3 status.py
+
+    # Detach without stopping the bot: Ctrl+A then D
+    # Reattach later
+    screen -r fivem-status
+    ```
+  </Tab>
+  <Tab title="tmux">
+    ```bash
+    # Start a named session
+    tmux new -s fivem-status
+
+    # Run the bot inside the session
+    python3 status.py
+
+    # Detach without stopping the bot: Ctrl+B then D
+    # Reattach later
+    tmux attach -t fivem-status
+    ```
+  </Tab>
+  <Tab title="nohup (background)">
+    ```bash
+    nohup python3 status.py &
+    ```
+
+    Output is written to `nohup.out`. To stop the bot, find its PID with `ps aux | grep status.py` and run `kill <PID>`.
+  </Tab>
+</Tabs>
+
+## Common startup errors
+
+| Error message | Cause | Fix |
+|---|---|---|
+| `ModuleNotFoundError: No module named 'discord'` | `discord` library not installed | Run `python3 -m pip install discord requests` |
+| `ModuleNotFoundError: No module named 'requests'` | `requests` library not installed | Run `python3 -m pip install requests` |
+| `discord.errors.LoginFailure: Improper token` | `BotToken` value is incorrect or expired | Regenerate the token in the Discord developer portal and update `status.py` |
+| `discord.errors.Forbidden` | Bot lacks permission to read or manage the channel | Re-invite the bot with the correct permissions or adjust channel permission overrides |

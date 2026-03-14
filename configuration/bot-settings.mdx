@@ -1,0 +1,113 @@
+---
+title: Bot settings
+description: Reference for all non-Servers configuration variables in status.py — channel ID, bot token, embed appearance, update timing, and notice strings.
+---
+
+These variables control the bot's Discord connection, embed appearance, update frequency, and the messages shown for online and offline servers.
+
+## Discord connection
+
+<ParamField path="ChannelID" type="int" required>
+  The ID of the Discord text channel where the status embed is posted and maintained.
+
+  To find it: enable **Developer Mode** in Discord user settings (**Advanced** tab), then right-click the target channel and select **Copy ID**.
+
+  ```python status.py
+  ChannelID = 709801509210030160
+  ```
+</ParamField>
+
+<ParamField path="BotToken" type="string" required>
+  The secret token used to authenticate the bot with Discord's API.
+  Obtain it from the **Bot** tab of your application in the [Discord Developer Portal](https://discord.com/developers/applications).
+
+  ```python status.py
+  BotToken = "your-token-here"
+  ```
+
+  <Warning>
+  Never commit `BotToken` to version control. If it is exposed, regenerate it immediately in the Discord Developer Portal and update `status.py`.
+  </Warning>
+</ParamField>
+
+## Embed appearance
+
+<ParamField path="EmbedTitle" type="string" required>
+  The heading text displayed at the top of the Discord status embed.
+  You can include a URL or any plain text.
+
+  ```python status.py
+  EmbedTitle = "Velocity Networks FiveM Server Status (https://github.com/example/repo)"
+  ```
+</ParamField>
+
+<ParamField path="ServerUpNotice" type="string" required>
+  A string prepended to the player-count line when a server responds successfully.
+  Supports Discord emoji syntax (e.g. `:green_circle:` or custom emoji `<:name:id>`).
+
+  ```python status.py
+  ServerUpNotice = ":green_circle: "
+  ```
+
+  The full online field value is:
+  ```
+  :green_circle: 12/64 players ...
+  Direct connect via: `velocitynetworks.org:30120`
+  ```
+</ParamField>
+
+<ParamField path="ServerDownNotice" type="string" required>
+  Replaces the **entire** embed field value when a server does not respond within the request timeout.
+  Supports Discord emoji syntax and newlines.
+
+  ```python status.py
+  ServerDownNotice = ":red_circle: No response <:pepesad:666781477236768768>\n\n I'm probably just offline"
+  ```
+</ParamField>
+
+## Update timing
+
+<ParamField path="UpdateDelay" type="int" required default="5">
+  Seconds to wait between each status refresh cycle.
+
+  <Tip>
+  Values between `5` and `30` seconds are a practical range. Lower values make the status more responsive to server changes but increase the number of HTTP requests to your FiveM servers and Discord API calls. Values below `3` seconds risk hitting Discord rate limits.
+  </Tip>
+
+  ```python status.py
+  UpdateDelay = 5
+  ```
+</ParamField>
+
+<ParamField path="CounterCap" type="int" required default="30">
+  The number of update iterations after which the bot purges the channel and reposts the embed from scratch.
+
+  Discord embeds edited in place accumulate in the channel's message history as a single edited message, but over time the embed can become visually buried under other messages if users post in the channel. Periodically deleting and recreating the message keeps the status pinned at the bottom.
+
+  At `UpdateDelay = 5` and `CounterCap = 30`, the channel is purged roughly every **150 seconds** (2.5 minutes).
+
+  ```python status.py
+  CounterCap = 30
+  ```
+
+  <Note>
+  The bot must have the **Manage Messages** permission in the target channel to purge messages.
+  </Note>
+</ParamField>
+
+## Direct-connect display
+
+<ParamField path="PublicIP" type="string" required>
+  The publicly reachable hostname or IP address shown in the direct-connect string inside each online server's embed field.
+
+  ```python status.py
+  PublicIP = "velocitynetworks.org"
+  ```
+
+  The port is taken from the last five characters of the server's `URL` entry in the `Servers` list.
+  For example, a server with `URL = "http://localhost:30120"` displays:
+
+  ```
+  Direct connect via: `velocitynetworks.org:30120`
+  ```
+</ParamField>

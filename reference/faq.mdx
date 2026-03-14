@@ -1,0 +1,117 @@
+---
+title: FAQ
+description: Frequently asked questions about the FiveM Discord Bot.
+---
+
+<AccordionGroup>
+  <Accordion title="What Python version do I need?">
+    Python **3.6 or newer** is required. The bot uses f-strings and `asyncio`, both of which require Python 3.6+.
+
+    Check your version with:
+
+    ```bash
+    python3 --version
+    ```
+  </Accordion>
+
+  <Accordion title="Why does the bot purge the channel on startup?">
+    This is intentional. The internal counter starts at `50`, and `CounterCap` defaults to `30`. Because `50 >= 30` is immediately true on the first loop iteration, the purge-and-recreate logic fires right away.
+
+    This guarantees a fresh embed is always posted when the bot starts, rather than leaving a stale message from a previous session.
+  </Accordion>
+
+  <Accordion title="Can I monitor servers on different machines?">
+    Yes. Set the `URL` field in each server entry to any reachable host and port. The bot makes standard HTTP requests, so the server just needs to be accessible from the machine running the bot.
+
+    ```python
+    {"URL": "http://203.0.113.10:30120", "DisplayName": "My Remote Server", "Bypass": False}
+    ```
+  </Accordion>
+
+  <Accordion title="How do I add more servers?">
+    Add additional dict entries to the `Servers` list in `status.py`:
+
+    ```python
+    Servers = [
+        {"URL": "http://localhost:30120", "DisplayName": "Server One", "Bypass": False},
+        {"URL": "http://203.0.113.10:30120", "DisplayName": "Server Two", "Bypass": False},
+        {"URL": "http://198.51.100.5:30120", "DisplayName": "Server Three", "Bypass": False},
+    ]
+    ```
+
+    Each entry requires a `URL`, `DisplayName`, and `Bypass` key.
+
+    <Note>Discord embeds have a 25-field limit. Keep the total number of entries (including `Bypass: True` spacers) at or below 25.</Note>
+  </Accordion>
+
+  <Accordion title="What does Bypass: True do?">
+    Setting `Bypass: True` on a server entry inserts a zero-width blank field into the embed. This acts as a visual spacer or line-break between groups of servers, making the embed easier to read when you have many entries.
+
+    ```python
+    Servers = [
+        {"URL": "", "DisplayName": "", "Bypass": True},  # spacer
+    ]
+    ```
+
+    No HTTP request is made for entries with `Bypass: True`.
+  </Accordion>
+
+  <Accordion title="Why does the direct-connect link show a wrong port?">
+    The bot extracts the port from the **last 5 characters** of the `URL` string. If the URL has a trailing slash, the extraction returns the wrong value.
+
+    | URL | Extracted port |
+    |-----|----------------|
+    | `http://localhost:30120` | `30120` (correct) |
+    | `http://localhost:30120/` | `0120/` (wrong) |
+
+    <Warning>Remove any trailing slashes from all `URL` values in your `Servers` list.</Warning>
+
+    ```python
+    # Correct
+    {"URL": "http://localhost:30120", "DisplayName": "My Server", "Bypass": False}
+
+    # Incorrect — trailing slash breaks port extraction
+    {"URL": "http://localhost:30120/", "DisplayName": "My Server", "Bypass": False}
+    ```
+  </Accordion>
+
+  <Accordion title="Can I run multiple instances for different Discord servers?">
+    Yes. Copy `status.py` to a new file and update the config values (particularly `BotToken` and `ChannelID`) for each Discord server. Then run each instance separately:
+
+    ```bash
+    python3 status_server1.py
+    python3 status_server2.py
+    ```
+
+    Each instance requires its own bot application and token from the Discord Developer Portal.
+  </Accordion>
+
+  <Accordion title="The bot shows servers as offline but they're running. What's wrong?">
+    The HTTP request used to poll each FiveM server has a **2-second timeout**. If the server is slow to respond or on a high-latency connection, the request times out and the server is marked as offline.
+
+    To increase the timeout, edit line 89 in `status.py` and raise the `timeout` value:
+
+    ```python
+    # Increase from 2 to a higher value (e.g. 5 seconds)
+    requests.get(url, timeout=5, verify=False)
+    ```
+
+    Also verify that the `URL` and port are correct, that the FiveM server is actually running, and that no firewall is blocking the connection.
+  </Accordion>
+
+  <Accordion title="Is SSL/HTTPS supported?">
+    Yes. The bot sets `verify=False` on all requests, which disables SSL certificate verification. This means it works with both `http://` and `https://` FiveM endpoints, including those with self-signed certificates.
+
+    <Note>Disabling certificate verification means the connection is not protected against man-in-the-middle attacks. This is acceptable for local or trusted networks but keep it in mind for public deployments.</Note>
+  </Accordion>
+
+  <Accordion title="How do I get my bot's token?">
+    1. Go to the [Discord Developer Portal](https://discord.com/developers/applications).
+    2. Select your application.
+    3. Click the **Bot** tab in the left sidebar.
+    4. Under **Token**, click **Copy** (or **Reset Token** if you need a new one).
+    5. Paste the token into the `BotToken` variable in `status.py`.
+
+    <Warning>Never share your bot token publicly. If it is exposed, reset it immediately from the Bot tab.</Warning>
+  </Accordion>
+</AccordionGroup>

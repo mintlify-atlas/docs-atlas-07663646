@@ -1,0 +1,35 @@
+---
+title: Configuration overview
+description: All configuration for the FiveM Discord Bot lives in the top section of status.py (lines 18–43). This page summarizes every variable and links to detailed sub-pages.
+---
+
+All configuration is defined as plain Python variables at the top of `status.py`. There is no external config file or environment file by default — edit the values directly before starting the bot.
+
+<Warning>
+Never commit `BotToken` to version control. If your repository is public, anyone who finds the token can take over your bot. Use a `.gitignore` entry or an environment variable instead.
+</Warning>
+
+## Variable summary
+
+| Variable | Type | Default | Purpose |
+|---|---|---|---|
+| `ChannelID` | `int` | `709801509210030160` | Discord channel where the status embed is posted |
+| `Servers` | `list[dict]` | — | List of FiveM server entries (and optional spacers) to monitor |
+| `EmbedTitle` | `str` | `"Velocity Networks FiveM Server Status (…)"` | Heading text shown at the top of the Discord embed |
+| `UpdateDelay` | `int` | `5` | Seconds between each status refresh cycle |
+| `CounterCap` | `int` | `30` | Number of update iterations before the channel is purged and the embed is recreated |
+| `PublicIP` | `str` | `"velocitynetworks.org"` | Hostname or IP used in direct-connect strings shown in the embed |
+| `BotToken` | `str` | `"lmao no"` | Discord bot token — **must be kept secret** |
+| `ServerUpNotice` | `str` | `":green_circle: "` | Prefix prepended to the player-count line when a server is online |
+| `ServerDownNotice` | `str` | `":red_circle: No response …"` | Replaces the entire embed field value when a server is offline |
+
+## Detailed reference
+
+<Columns cols={2}>
+  <Card title="Servers array" icon="server" href="/configuration/servers">
+    How to configure each FiveM server entry, add spacers between groups, and understand URL/port handling.
+  </Card>
+  <Card title="Bot settings" icon="sliders" href="/configuration/bot-settings">
+    ChannelID, BotToken, EmbedTitle, UpdateDelay, CounterCap, PublicIP, and notice strings.
+  </Card>
+</Columns>

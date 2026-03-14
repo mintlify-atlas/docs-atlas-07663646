@@ -1,0 +1,56 @@
+---
+title: Discord bot setup
+description: Register a Discord bot, generate an invite link, and get your channel ID.
+---
+
+<Steps>
+  <Step title="Create an application">
+    Go to [https://discord.com/developers/applications](https://discord.com/developers/applications) and sign in with your Discord account.
+
+    Click **New Application**, enter a name for your bot (e.g. `FiveM Status`), and click **Create**.
+  </Step>
+
+  <Step title="Add a bot user">
+    In the left sidebar, click the **Bot** tab.
+
+    Click **Add Bot**, then confirm by clicking **Yes, do it!**
+  </Step>
+
+  <Step title="Copy the bot token">
+    On the **Bot** page, click **Reset Token** (or **Copy** if a token is already shown) to reveal your bot token.
+
+    Copy the token and paste it into the `BotToken` variable in `status.py`.
+
+    <Warning>
+      Your bot token is equivalent to a password. Anyone who has it can control your bot and access every server it is in. Never share it publicly, commit it to version control, or paste it in a chat. If it is ever exposed, regenerate it immediately from the Bot tab.
+    </Warning>
+  </Step>
+
+  <Step title="Get the Client ID">
+    In the left sidebar, click **General Information**.
+
+    Copy the value under **Application ID** — this is your Client ID and is used to build the invite URL.
+  </Step>
+
+  <Step title="Invite the bot to your server">
+    Build the invite URL by replacing `YOUR_CLIENT_ID` with the Application ID you copied:
+
+    ```
+    https://discord.com/oauth2/authorize?client_id=YOUR_CLIENT_ID&scope=bot
+    ```
+
+    Navigate to that URL in your browser. Select the server you want to add the bot to and click **Authorize**.
+  </Step>
+
+  <Step title="Enable Developer Mode">
+    Open Discord and go to **User Settings** → **Advanced**.
+
+    Toggle on **Developer Mode**. This unlocks the ability to copy IDs for channels, users, and servers by right-clicking them.
+  </Step>
+
+  <Step title="Copy the channel ID">
+    Right-click the text channel you want the bot to post status updates in.
+
+    Click **Copy ID**. Paste this integer into the `ChannelID` variable in `status.py`.
+  </Step>
+</Steps>

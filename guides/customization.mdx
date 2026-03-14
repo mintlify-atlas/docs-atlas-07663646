@@ -1,0 +1,105 @@
+---
+title: Customization
+description: Tune the bot's appearance, update frequency, and server grouping to match your community.
+---
+
+## Status indicators
+
+The `ServerUpNotice` and `ServerDownNotice` variables control the prefix text shown in the embed for each server.
+
+```python
+ServerUpNotice   = ":green_circle: "
+ServerDownNotice = ":red_circle: No response...\n\n I'm probably just offline"
+```
+
+You can use any Discord emoji syntax or plain text:
+
+```python
+# Custom emoji examples
+ServerUpNotice   = ":white_check_mark: "
+ServerDownNotice = ":x: Offline — check back soon"
+
+# Plain text (no emoji)
+ServerUpNotice   = "ONLINE — "
+ServerDownNotice = "OFFLINE"
+```
+
+## Embed title
+
+Set `EmbedTitle` to your community name. This string appears as the title of the Discord embed.
+
+```python
+EmbedTitle = "Eclipse Roleplay — Server Status"
+```
+
+## Multiple server groups
+
+The `Servers` list supports entries with `"Bypass": True`. These entries are rendered as visual spacers between groups of servers rather than polling a real URL.
+
+```python
+Servers = [
+    # --- Los Santos group ---
+    {"URL": "http://localhost:30120", "DisplayName": "Los Santos Main",    "Bypass": False},
+    {"URL": "http://localhost:30121", "DisplayName": "Los Santos Whitelist", "Bypass": False},
+
+    # Spacer between groups
+    {"URL": "", "DisplayName": "────────────", "Bypass": True},
+
+    # --- Tracks group ---
+    {"URL": "http://localhost:30122", "DisplayName": "Drag Strip",  "Bypass": False},
+    {"URL": "http://localhost:30123", "DisplayName": "Race Circuit", "Bypass": False},
+]
+```
+
+<Note>
+  Bypass entries are added to the embed as-is using the `DisplayName` string. Their `URL` value is never fetched, so it can be any placeholder string.
+</Note>
+
+## Update frequency
+
+`UpdateDelay` controls how many seconds the bot waits between embed refreshes.
+
+```python
+UpdateDelay = 5   # refresh every 5 seconds (default)
+```
+
+<Tip>
+  Lower values (e.g. `5`) make the embed more responsive but generate more API calls to your FiveM servers. Values between **5 and 30 seconds** are recommended for most communities.
+</Tip>
+
+## Message regeneration (CounterCap)
+
+Every update increments an internal counter. When `Counter >= CounterCap`, the bot purges the channel and posts a fresh message. This prevents the Discord message from becoming too old to edit.
+
+```python
+CounterCap = 30   # purge and repost after 30 updates (default)
+```
+
+At the default settings (`UpdateDelay = 5`, `CounterCap = 30`), the channel is purged every **2.5 minutes** (5 s × 30 updates).
+
+| UpdateDelay | CounterCap | Purge interval |
+|---|---|---|
+| 5 s | 30 | 2.5 minutes |
+| 10 s | 30 | 5 minutes |
+| 5 s | 60 | 5 minutes |
+| 10 s | 60 | 10 minutes |
+
+<Note>
+  The bot starts with `Counter = 50`, which is already above the default `CounterCap = 30`, so the channel is always purged and a fresh message is posted on the very first run.
+</Note>
+
+## Direct-connect port
+
+The bot extracts the FiveM port from the last 5 characters of the server URL string:
+
+```python
+serverObj['URL'][-5:]
+```
+
+For example, `"http://localhost:30120"` → port `30120`.
+
+This means the port **must always occupy the last 5 characters of the URL**. Standard FiveM ports (`30120`–`30129`) all satisfy this requirement.
+
+<Warning>
+  Do not add a trailing slash to server URLs (e.g. `http://localhost:30120/` would extract `/3012` instead of `30120`).
+</Warning>

@@ -1,0 +1,141 @@
+---
+title: Troubleshooting
+description: Solutions to common problems encountered when running the FiveM Discord Bot.
+---
+
+<AccordionGroup>
+  <Accordion title="ERROR: CANNOT IMPORT 'discord' LIBRARY. IS IT INSTALLED?">
+    **Cause:** The `discord` Python package is not installed in the environment where you are running the bot.
+
+    **Solution:** Install the package using pip:
+
+    ```bash
+    python3 -m pip install discord
+    ```
+
+    If you are using a virtual environment, make sure it is activated before running the install command and before starting the bot.
+  </Accordion>
+
+  <Accordion title="ERROR: CANNOT IMPORT 'requests' LIBRARY. IS IT INSTALLED?">
+    **Cause:** The `requests` Python package is not installed.
+
+    **Solution:** Install the package using pip:
+
+    ```bash
+    python3 -m pip install requests
+    ```
+
+    You can install both required packages in one command:
+
+    ```bash
+    python3 -m pip install discord requests
+    ```
+  </Accordion>
+
+  <Accordion title="discord.errors.LoginFailure / Improper token passed">
+    **Cause:** The `BotToken` value in `status.py` is incorrect, contains extra whitespace, or the token has been reset since it was copied.
+
+    **Solution:**
+
+    1. Go to the [Discord Developer Portal](https://discord.com/developers/applications).
+    2. Select your application and click the **Bot** tab.
+    3. Click **Reset Token** to generate a new token, then click **Copy**.
+    4. Replace the `BotToken` value in `status.py` with the freshly copied token.
+
+    <Warning>Make sure there are no leading or trailing spaces around the token string in `status.py`.</Warning>
+
+    ```python
+    # Correct
+    BotToken = "your.token.here"
+
+    # Incorrect — extra space will cause LoginFailure
+    BotToken = " your.token.here"
+    ```
+  </Accordion>
+
+  <Accordion title="discord.errors.NotFound or Forbidden when accessing the channel">
+    **Cause:** Either the `ChannelID` in `status.py` is wrong, or the bot has not been granted the necessary permissions in that channel.
+
+    **Solution:**
+
+    1. **Verify the channel ID.** In Discord, enable Developer Mode under **User Settings → Advanced**, then right-click the target channel and select **Copy Channel ID**. Paste this value into `ChannelID` in `status.py`.
+    2. **Check bot permissions.** The bot needs the following permissions in the target channel:
+       - View Channel
+       - Send Messages
+       - Manage Messages (required for purging old embeds)
+       - Embed Links
+
+    <Note>Channel-level permission overwrites override server-wide role permissions. Check both the role permissions and any channel-specific overwrites for the bot's role.</Note>
+  </Accordion>
+
+  <Accordion title="All servers show as offline/down">
+    **Cause:** The bot cannot reach the FiveM HTTP endpoints. This can be caused by an incorrect URL, a trailing slash, a stopped server, or a firewall blocking the port.
+
+    **Solution:** Work through the following checks:
+
+    1. **Remove trailing slashes** from every `URL` in the `Servers` list:
+       ```python
+       # Correct
+       {"URL": "http://localhost:30120", ...}
+
+       # Incorrect
+       {"URL": "http://localhost:30120/", ...}
+       ```
+    2. **Confirm the FiveM server is running** and that the HTTP endpoint responds. Test it manually:
+       ```bash
+       curl http://localhost:30120/info.json
+       ```
+    3. **Check firewall rules.** The default FiveM HTTP port is `30120`. Ensure inbound and outbound traffic on this port is allowed between the bot host and the game server host.
+    4. **Confirm the URL format** — it must include the scheme and port: `http://host:port`.
+  </Accordion>
+
+  <Accordion title="Direct-connect port shows as '0120/' instead of '30120'">
+    **Cause:** The bot extracts the server port from the last 5 characters of the `URL` string. A trailing slash shifts the extraction window by one character, returning `0120/` instead of `30120`.
+
+    **Solution:** Remove the trailing slash from the `URL`:
+
+    ```python
+    # Correct — port extracted correctly as "30120"
+    {"URL": "http://localhost:30120", "DisplayName": "My Server", "Bypass": False}
+
+    # Incorrect — trailing slash causes port to extract as "0120/"
+    {"URL": "http://localhost:30120/", "DisplayName": "My Server", "Bypass": False}
+    ```
+
+    Check all entries in your `Servers` list for trailing slashes.
+  </Accordion>
+
+  <Accordion title="Bot stops updating after running for a while">
+    **Cause:** The bot process has likely crashed due to an unhandled Python exception. The `reconnect=True` flag passed to `client.run()` handles Discord-level disconnects (e.g. network drops), but it does not catch exceptions raised inside the bot's own code.
+
+    **Solution:**
+
+    1. Run the bot in a persistent terminal session so you can see crash output:
+       ```bash
+       # Using screen
+       screen -S fivem-bot
+       python3 status.py
+       ```
+       ```bash
+       # Using tmux
+       tmux new -s fivem-bot
+       python3 status.py
+       ```
+    2. Watch the terminal output for Python tracebacks when the bot stops updating.
+    3. For a production setup, consider running the bot as a `systemd` service with `Restart=on-failure` to automatically restart it after crashes.
+
+    <Tip>Attaching to the screen or tmux session after a crash (`screen -r fivem-bot` or `tmux attach -t fivem-bot`) lets you read the error message before the terminal closes.</Tip>
+  </Accordion>
+
+  <Accordion title="Embed fields are missing or the embed looks incomplete">
+    **Cause:** Discord enforces a **25-field limit** on embeds. If your `Servers` list contains more than 25 entries (including `Bypass: True` spacer entries), Discord silently drops the fields that exceed the limit.
+
+    **Solution:**
+
+    - Reduce the total number of entries in the `Servers` list to 25 or fewer.
+    - Remove unnecessary `Bypass: True` spacer entries to free up field slots.
+    - If you genuinely need to display more than 25 servers, split them across multiple bots, each posting to its own channel.
+
+    <Warning>This limit is enforced by Discord's API and cannot be overridden. Any entry beyond the 25th will be silently omitted from the embed.</Warning>
+  </Accordion>
+</AccordionGroup>

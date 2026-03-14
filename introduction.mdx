@@ -1,0 +1,58 @@
+---
+title: Introduction
+description: A Python Discord bot that polls FiveM game servers and posts live player-count status embeds to your Discord channel.
+---
+
+# FiveM Discord Bot
+
+FiveM Discord Bot is a lightweight Python script that monitors your FiveM game servers and automatically posts a live status embed into a Discord channel. It continuously updates a single message with real-time player counts, online/offline indicators, and direct-connect links — no web dashboard required.
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get the bot running in under 10 minutes
+  </Card>
+  <Card title="Discord setup" icon="discord" href="/guides/discord-setup">
+    Register your bot and add it to your server
+  </Card>
+  <Card title="Configuration reference" icon="sliders" href="/configuration/overview">
+    Every configuration variable explained
+  </Card>
+  <Card title="Customization" icon="paintbrush" href="/guides/customization">
+    Tailor status messages, emoji, and embed layout
+  </Card>
+</CardGroup>
+
+## How it works
+
+The bot connects to Discord using the `discord.py` library and runs a continuous loop inside the `on_ready` event:
+
+1. **Fetch channel** — resolves the target Discord channel by ID on startup.
+2. **Purge & post** — every `CounterCap` iterations, the channel is cleared and a fresh "Loading…" message is created to prevent Discord embed history from growing unbounded.
+3. **Poll servers** — for each entry in the `Servers` list, the bot makes two HTTP requests to the FiveM HTTP server endpoints:
+   - `/players.json` — returns an array of connected players; its length is the current player count.
+   - `/info.json` — returns server metadata including `sv_maxClients`.
+4. **Build embed** — assembles a `discord.Embed` with one field per server (or a blank spacer for `Bypass` entries) and edits the active message in place.
+5. **Sleep** — waits `UpdateDelay` seconds before the next iteration.
+
+## Key features
+
+- **Live player counts** — polls `/players.json` and `/info.json` on every FiveM server
+- **Auto-refreshing embed** — edits a single Discord message rather than spamming new ones
+- **Online / offline indicators** — configurable emoji or text for up/down states
+- **Direct-connect links** — displays `publicIP:port` so players can connect immediately
+- **Visual separators** — `Bypass: True` entries insert blank spacer fields to group servers visually
+- **Channel auto-purge** — regenerates the embed message after a configurable number of updates
+
+## Requirements
+
+| Requirement | Notes |
+|---|---|
+| Python 3.6+ | Available from [python.org](https://www.python.org/) or the Windows Store |
+| `discord` | `pip install discord` |
+| `requests` | `pip install requests` |
+| Discord bot token | Obtained from the [Discord Developer Portal](https://discord.com/developers/applications) |
+| FiveM server(s) | Must have the HTTP server accessible (default port `30120`) |
+
+<Note>
+The bot disables SSL verification (`verify=False`) when polling FiveM endpoints. This is intentional since most FiveM servers do not serve HTTPS on their HTTP endpoints.
+</Note>
