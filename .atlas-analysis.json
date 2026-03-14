@@ -1,0 +1,53 @@
+{
+  "projectType": "general",
+  "projectName": "FiveM Discord Bot",
+  "projectDescription": "A Python Discord bot that polls FiveM game servers and posts live player-count status embeds to a Discord channel.",
+  "theme": "mint",
+  "primaryColor": "#5865F2",
+  "lightColor": "#7983F5",
+  "darkColor": "#3C45A5",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "quickstart"]
+          },
+          {
+            "group": "Configuration",
+            "pages": ["configuration/overview", "configuration/servers", "configuration/bot-settings"]
+          },
+          {
+            "group": "Guides",
+            "pages": ["guides/discord-setup", "guides/running-the-bot", "guides/customization"]
+          },
+          {
+            "group": "Reference",
+            "pages": ["reference/faq", "reference/troubleshooting"]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Polls multiple FiveM servers for live player counts via HTTP",
+    "Posts and continuously updates a Discord embed with server statuses",
+    "Supports visual line-break separators between server groups",
+    "Shows online/offline status with customizable emoji notices",
+    "Displays direct-connect links for each server",
+    "Configurable update interval and message-regeneration counter"
+  ],
+  "publicApiSurface": [
+    "ChannelID — Discord channel to post status updates in",
+    "Servers — list of FiveM server objects with URL, DisplayName, and Bypass fields",
+    "EmbedTitle — title string shown at the top of the Discord embed",
+    "UpdateDelay — seconds between each status refresh",
+    "CounterCap — number of updates before the channel is purged and a new message is created",
+    "PublicIP — public IP/hostname displayed in direct-connect links",
+    "BotToken — Discord bot authentication token",
+    "ServerUpNotice — text/emoji prefix shown when a server is online",
+    "ServerDownNotice — text shown when a server is offline or unreachable"
+  ]
+}
